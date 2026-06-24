@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - Ground
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 3495252853
+    locked: 0
+  - name: WalkinFront
+    uniqueID: 4173853283
+    locked: 0
+  - name: GroundCollision
+    uniqueID: 3100854571
+    locked: 0
+  - name: PlatformCollision
+    uniqueID: 4243208347
+    locked: 0
+  - name: Player
+    uniqueID: 2716196795
+    locked: 0
+  - name: WalkBehind
+    uniqueID: 1167790149
+    locked: 0
+  m_RenderingLayers:
+  - Default
