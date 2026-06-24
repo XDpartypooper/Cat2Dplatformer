@@ -14,22 +14,28 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isRunning;
     [SerializeField] private LayerMask GroundLayer;
     public float GroundCheckDistance;
+    public NPC NPCAT;
 
     [Header("Cat meow")]
     [SerializeField] GameObject MeowPrefab;
-
+    [SerializeField] GameObject MeowAttackPrefab;
+    [SerializeField] bool MeowAttackUnlock;
+    [SerializeField] GameObject AttackUI;
 
     float horizontalInput;
     private Rigidbody2D rb;
     private Animator animator;
-    private bool MCD;//meow cool down
-    private bool CanMove = true;
+    public bool MCD;//meow cool down
+    public bool CanMove = true;
+    public bool Talking = false;
 
     void Awake()
     {
         CurrentMovespeed = Basemovespeed;
         rb = this.gameObject.GetComponent<Rigidbody2D>();
         animator = this.gameObject.GetComponent<Animator>();
+        MeowAttackUnlock = false;       
+        AttackUI.SetActive(false);
     }
 
 
@@ -43,10 +49,14 @@ public class PlayerController : MonoBehaviour
     {
         HandleCollision();
         MovementAnimation();
-        if (CanMove)
+        if (CanMove && !Talking)
         {
             rb.linearVelocity = new Vector2(horizontalInput * CurrentMovespeed, rb.linearVelocity.y);
-        }     
+        }
+        else 
+        {
+            //rb.linearVelocity = Vector2.zero;
+        }
     }
     public void Move(InputAction.CallbackContext context)
     {
@@ -80,12 +90,62 @@ public class PlayerController : MonoBehaviour
             GameObject meow = Instantiate(MeowPrefab, meowPos, transform.rotation);
             meow.transform.localScale = transform.localScale;
 
+            meow.GetComponent<AudioSource>().volume = 0.4f;
             meow.GetComponent<AudioSource>().Play();
             Destroy(meow, 1);
-            MCD = true;
+            MCD = true;//meow cool down
             CanMove = false;
+
+            if (NPCAT != null) NPCAT.StartDialouge();
+
             StartCoroutine(MeowCoolDown());
         }
+    }
+
+
+    public void OnATTACKMeow(InputAction.CallbackContext context)
+    {
+        if (MCD || MeowAttackUnlock == false)
+        {
+            return;
+        }
+
+        if (context.started && isGrounded)
+        {
+            animator.SetTrigger("Meow");
+            Vector3 meowPos = transform.position + (transform.right * 1.2f * Mathf.Sign(transform.localScale.x));
+            GameObject meow = Instantiate(MeowPrefab, meowPos, transform.rotation);
+            meow.transform.localScale = transform.localScale;
+            meow.GetComponent<AudioSource>().volume = 1;
+            meow.GetComponent<AudioSource>().Play();
+
+
+            Vector3 meowAttackPos = transform.position + (transform.right * 3.0f * Mathf.Sign(transform.localScale.x) + (Vector3.up * 0.9f));
+            GameObject meowAttack = Instantiate(MeowAttackPrefab, meowAttackPos, transform.rotation);
+            meowAttack.transform.localScale = transform.localScale;
+
+            Destroy(meow, 1);
+            Destroy(meowAttack, 1.4f);
+            MCD = true;//meow cool down
+            CanMove = false;
+
+            StartCoroutine(MeowCoolDown());
+        }
+    }
+
+    public void unlockSkill()
+    {
+        MeowAttackUnlock = true;
+        AttackUI.SetActive(true);
+     }
+
+    public void SetCATNPC(GameObject CAT)
+    {
+        NPCAT = CAT.GetComponent<NPC>();
+    }
+    public void RemoveCATNPC()
+    {
+        NPCAT = null;
     }
 
     public void OnLoaf(InputAction.CallbackContext context)
@@ -94,6 +154,7 @@ public class PlayerController : MonoBehaviour
         if (context.started)
         {
             animator.SetTrigger("LOAF");
+            if (NPCAT != null) NPCAT.FollowLoaf();
         }
     }
 
@@ -113,6 +174,8 @@ public class PlayerController : MonoBehaviour
     }
     void MovementAnimation()
     {
+        
+
         if (!isGrounded)
         {
             animator.SetBool("IsJumping", true);
@@ -123,7 +186,7 @@ public class PlayerController : MonoBehaviour
         }
 
 
-
+        if (!CanMove) return;
         animator.SetFloat("XVel", rb.linearVelocity.x);
         animator.SetFloat("YVel", rb.linearVelocity.y);
 
@@ -176,5 +239,15 @@ public class PlayerController : MonoBehaviour
         CanMove = true;
         yield return new WaitForSeconds(0.5f);
         MCD = false;
+    }
+    public void TakeDamage()
+    {
+        StartCoroutine(TakingDamage());
+    }
+    IEnumerator TakingDamage()
+    {
+        CanMove = false;
+        yield return new WaitForSeconds(0.5f);
+        CanMove = true;
     }
 }
