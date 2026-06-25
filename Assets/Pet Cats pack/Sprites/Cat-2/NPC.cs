@@ -29,6 +29,7 @@ public class NPC : MonoBehaviour
     [SerializeField] GameObject MeowPrefab;
     [SerializeField] string CatName = "Cat";
     public bool PlayerInside;
+    public bool NPCTalking = false;
     [SerializeField] PlayerController PC;
     void Start()
     {
@@ -77,7 +78,7 @@ public class NPC : MonoBehaviour
             if (PC != null)
             {
                 PlayerInside = true;
-                collision.SendMessage("SetCATNPC",this.gameObject, SendMessageOptions.DontRequireReceiver);
+                collision.SendMessage("SetCATNPC",this, SendMessageOptions.DontRequireReceiver);
             }
         }
     }
@@ -98,11 +99,32 @@ public class NPC : MonoBehaviour
     }
 
 
+    public void StartAction()
+    {
+        
+    }
+
+
     public void StartDialouge()
     {
         if (Accepted == true) { DialogueArea.SetActive(true); OptionPanel.SetActive(false); CatTalkUI.text = "GO ON MEOWBORN";  return;};
 
 
+        if (NPCTalking == true && !OptionPanel.activeSelf)
+        {
+            if (CatTalkUI.text == lines[index])
+            {
+                NextLine();
+            }
+            else
+            {
+                StopAllCoroutines();
+                CatTalkUI.text = lines[index];
+            }
+            return;
+        }
+
+        NPCTalking = true;
         OptionsClicked = false;
         index = 0;
         DialogueArea.SetActive(true);
@@ -137,7 +159,7 @@ public class NPC : MonoBehaviour
         foreach (char c in lines[index].ToCharArray())
         {
             CatTalkUI.text += c;
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.05f);
         }
     }
 
@@ -148,14 +170,12 @@ public class NPC : MonoBehaviour
 
     IEnumerator Loafing()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1.0f);
         GetComponent<Animator>().Play("BlackCatLoaf");
     }
 
     void OnButtonClicked(int clickedIndex)
     {
-        Debug.Log("Button index " + clickedIndex + " was clicked!");
-       
 
         switch (clickedIndex)
         {

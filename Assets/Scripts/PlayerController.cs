@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,15 +7,18 @@ using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Cat Movements")]
     [SerializeField] private float Basemovespeed = 5f;
     [SerializeField] private float CurrentMovespeed;
     [SerializeField] private bool isFacingRight = true;
     [SerializeField] private float jumppower = 5f;
+    //[SerializeField] private float coyoteTime = 0.2f;
     [SerializeField] private bool isGrounded;
     [SerializeField] private bool isRunning;
     [SerializeField] private LayerMask GroundLayer;
     public float GroundCheckDistance;
     public NPC NPCAT;
+    public GameObject InteractiveGameobject;
 
     [Header("Cat meow")]
     [SerializeField] GameObject MeowPrefab;
@@ -22,20 +26,23 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool MeowAttackUnlock;
     [SerializeField] GameObject AttackUI;
 
+    [Header("Cat other info")]
     float horizontalInput;
     private Rigidbody2D rb;
     private Animator animator;
     public bool MCD;//meow cool down
     public bool CanMove = true;
     public bool Talking = false;
+    [SerializeField] GameObject EndGameUI;
 
     void Awake()
     {
         CurrentMovespeed = Basemovespeed;
         rb = this.gameObject.GetComponent<Rigidbody2D>();
         animator = this.gameObject.GetComponent<Animator>();
-        MeowAttackUnlock = false;       
+        MeowAttackUnlock = false;
         AttackUI.SetActive(false);
+        EndGameUI.SetActive(false);
     }
 
 
@@ -49,17 +56,16 @@ public class PlayerController : MonoBehaviour
     {
         HandleCollision();
         MovementAnimation();
-        if (CanMove && !Talking)
+        if (CanMove)
         {
             rb.linearVelocity = new Vector2(horizontalInput * CurrentMovespeed, rb.linearVelocity.y);
         }
-        else 
-        {
-            //rb.linearVelocity = Vector2.zero;
-        }
+
     }
     public void Move(InputAction.CallbackContext context)
     {
+        if (!CanMove) return;
+
         Vector2 Move = context.ReadValue<Vector2>();
         horizontalInput = Move.x;
     }
@@ -82,6 +88,7 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+        if (!CanMove) return;
 
         if (context.started && isGrounded)
         {
@@ -109,6 +116,7 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+        if (!CanMove) return;
 
         if (context.started && isGrounded)
         {
@@ -129,6 +137,14 @@ public class PlayerController : MonoBehaviour
             MCD = true;//meow cool down
             CanMove = false;
 
+            if (InteractiveGameobject != null)
+            {
+                Debug.Log("Sending message: StartAction");
+                InteractiveGameobject.SendMessage("StartAction", SendMessageOptions.DontRequireReceiver);
+
+            }
+
+
             StartCoroutine(MeowCoolDown());
         }
     }
@@ -137,19 +153,26 @@ public class PlayerController : MonoBehaviour
     {
         MeowAttackUnlock = true;
         AttackUI.SetActive(true);
-     }
+    }
 
-    public void SetCATNPC(GameObject CAT)
+  
+    public void SetCATNPC(NPC CAT)// cat npc
     {
         NPCAT = CAT.GetComponent<NPC>();
     }
-    public void RemoveCATNPC()
+    public void SetCATNPC(GameObject Obj)//interactive
+    {
+        InteractiveGameobject = Obj;
+    }
+    public void RemoveCATNPC()//remove cat or interative
     {
         NPCAT = null;
+        InteractiveGameobject = null;
     }
 
     public void OnLoaf(InputAction.CallbackContext context)
     {
+        if (!CanMove) return;
 
         if (context.started)
         {
@@ -174,7 +197,7 @@ public class PlayerController : MonoBehaviour
     }
     void MovementAnimation()
     {
-        
+
 
         if (!isGrounded)
         {
@@ -221,20 +244,18 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
-        {
-            isGrounded = true;
-        }
+
+
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        isGrounded = false;
+        
     }
 
     IEnumerator MeowCoolDown()
     {
-        rb.linearVelocity = new Vector2(0,0);
+        rb.linearVelocity = new Vector2(0, 0);
         yield return new WaitForSeconds(1.0f);
         CanMove = true;
         yield return new WaitForSeconds(0.5f);
@@ -249,5 +270,30 @@ public class PlayerController : MonoBehaviour
         CanMove = false;
         yield return new WaitForSeconds(0.5f);
         CanMove = true;
+    }
+
+    public void EndofGame()// short thing 
+    {
+        CanMove = false;
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        StartCoroutine(CatEndAnimation());
+    }
+
+    IEnumerator CatEndAnimation()
+    {
+        CanMove = false;
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        yield return new WaitForSeconds(0.5f);
+        animator.Play("CatLick1");
+        yield return new WaitForSeconds(1.5f);     
+        animator.Play("CatStretching");
+        yield return new WaitForSeconds(1.5f);
+        animator.Play("CatLick2");
+        yield return new WaitForSeconds(1.5f);
+        
+
+        EndGameUI.SetActive(true);
     }
 }
