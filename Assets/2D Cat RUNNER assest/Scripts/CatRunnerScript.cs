@@ -39,7 +39,8 @@ public class CatRunnerScript : MonoBehaviour
     {
         CheckGrounded();//ground check 
         IfHoldingJump();// check if player is jumping + holding button
-        MovementAnimation();
+        SprintCheck();//sprint check
+        MovementAnimation();//update cat animations
 
     }
 
@@ -96,7 +97,6 @@ public class CatRunnerScript : MonoBehaviour
 
             CurrentMovespeed = Basemovespeed * 1.5f;
         }
-
         else
         {
             CurrentMovespeed = Basemovespeed;
@@ -104,7 +104,11 @@ public class CatRunnerScript : MonoBehaviour
     }
     void MovementAnimation()
     {
-        animator.SetFloat("XVel", rb.linearVelocity.x);
+        if (isJumping) { animator.SetBool("IsJumping", true); }else{ animator.SetBool("IsJumping", false); };//set animator settings
+        if (!isJumping && !isGrounded) { animator.SetBool("IsFalling", true); } else { animator.SetBool("IsFalling", false); };//set animator settings
+        if (isGrounded) { animator.SetBool("IsGrounded", true); } else { animator.SetBool("IsGrounded", false); };//set animator settings
+
+        animator.SetFloat("XVel", CurrentMovespeed);
         animator.SetFloat("YVel", rb.linearVelocity.y);
     }
 }
