@@ -7,8 +7,9 @@ public class CatRunnerCollision : MonoBehaviour
         if (collision.transform.tag == "Obstacle")
         {
             //Destroy(gameObject);//gameover
-            gameObject.SetActive(false);
+
             GameController.instance.GameOver();
+            gameObject.SetActive(false);
         }
     }
 }

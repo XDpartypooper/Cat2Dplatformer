@@ -8,5 +8,6 @@ public class ObstacleClearScript : MonoBehaviour
         {
             Destroy(collision.transform.parent.gameObject);
         }
+        Destroy(collision.transform.parent.gameObject);
     }
 }

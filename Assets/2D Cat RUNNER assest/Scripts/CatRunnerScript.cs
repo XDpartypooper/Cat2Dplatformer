@@ -22,6 +22,8 @@ public class CatRunnerScript : MonoBehaviour
     [SerializeField] private LayerMask GroundLayer;
     [SerializeField] private Transform FeetPos;
     [SerializeField] private float GroundDis = 0.25f;
+
+
     private float horizontalInput = 1f;// 1f move right , -1f move left
     private Rigidbody2D rb;
     private Animator animator;
@@ -37,10 +39,14 @@ public class CatRunnerScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (GameController.instance.isPlaying == false) return;//doesnt do anything if not playing
+
         CheckGrounded();//ground check 
         IfHoldingJump();// check if player is jumping + holding button
         SprintCheck();//sprint check
         MovementAnimation();//update cat animations
+
+     
 
     }
 
@@ -49,11 +55,13 @@ public class CatRunnerScript : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(FeetPos.position, GroundDis, GroundLayer);
     }
 
+   
+
     public void OnJump(InputAction.CallbackContext context)
     {
 
         //if (!CanMove) return;
-        if (context.started && isGrounded == true) //if pressed
+        if (context.started  && isGrounded == true) //if pressed
         {         
             isJumping = true;
             HoldingJump = true;
